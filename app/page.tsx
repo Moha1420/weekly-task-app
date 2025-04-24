@@ -1,103 +1,124 @@
-import Image from "next/image";
+"use client"
+import React, { useState } from 'react';
+import { addDays, format, startOfWeek } from 'date-fns';
 
-export default function Home() {
+// Simplified types
+type TaskType = 'assessment' | 'exam' | 'teamwork';
+
+interface Task {
+  id: number;
+  title: string;
+  type: TaskType;
+  dueDate: Date;
+}
+
+// Sample task data
+const taskData: Task[] = [
+  { id: 1, title: 'Project Proposal', type: 'teamwork', dueDate: new Date(2025, 2, 14) },
+  { id: 2, title: 'Midterm Exam', type: 'exam', dueDate: new Date(2025, 2, 15) },
+  { id: 3, title: 'Essay Submission', type: 'assessment', dueDate: new Date(2025, 2, 16) },
+  { id: 4, title: 'Group Presentation', type: 'teamwork', dueDate: new Date(2025, 2, 17) },
+  { id: 5, title: 'Quiz', type: 'exam', dueDate: new Date(2025, 2, 18) },
+  { id: 6, title: 'Lab Report', type: 'assessment', dueDate: new Date(2025, 2, 19) },
+  { id: 7, title: 'Final Project Submission', type: 'teamwork', dueDate: new Date(2025, 2, 20) },
+];
+
+// Simplified color mapping
+const taskColors: Record<TaskType, string> = {
+  assessment: 'bg-orange-500',
+  exam: 'bg-red-500',
+  teamwork: 'bg-blue-500',
+};
+
+// Simplified Task Card component
+const TaskCard = ({ task }: { task: Task }) => (
+  <div className="rounded-lg shadow-md p-4 mb-3 bg-white border-l-4" 
+       style={{ borderLeftColor: task.type === 'assessment' ? '#f97316' : 
+                                task.type === 'exam' ? '#ef4444' : '#3b82f6' }}>
+    <h3 className="text-lg font-semibold text-gray-800">{task.title}</h3>
+    <p className="text-sm text-gray-600">Due: {format(task.dueDate, 'dd MMM yyyy')}</p>
+  </div>
+);
+
+// Simplified Task Column component
+const TaskColumn = ({ 
+  title, 
+  tasks, 
+  colorClass 
+}: { 
+  title: string; 
+  tasks: Task[]; 
+  colorClass: string 
+}) => (
+  <div className="flex-1 mx-2 rounded-lg shadow-lg overflow-hidden bg-gray-50">
+    <div className={`${colorClass} text-white p-4`}>
+      <h2 className="text-xl font-bold">{title}</h2>
+    </div>
+    <div className="p-4">
+      {tasks.length > 0 ? (
+        tasks.map((task) => <TaskCard key={task.id} task={task} />)
+      ) : (
+        <p className="text-gray-500 italic">No tasks this week</p>
+      )}
+    </div>
+  </div>
+);
+
+// Main component
+const WeeklyTaskView = () => {
+  const [weekStart, setWeekStart] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
+
+  // Filter tasks by current week
+  const currentWeekTasks = taskData.filter((task) => {
+    const taskDate = task.dueDate;
+    return taskDate >= weekStart && taskDate < addDays(weekStart, 7);
+  });
+
+  // Group tasks by type
+  const assessments = currentWeekTasks.filter((task) => task.type === 'assessment');
+  const exams = currentWeekTasks.filter((task) => task.type === 'exam');
+  const teamwork = currentWeekTasks.filter((task) => task.type === 'teamwork');
+
+  // Week navigation handlers
+  const handlePreviousWeek = () => setWeekStart(addDays(weekStart, -7));
+  const handleNextWeek = () => setWeekStart(addDays(weekStart, 7));
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-gray-100 py-8 font-sans">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header with week navigation */}
+        <div className="flex flex-col md:flex-row justify-between items-center mb-8 bg-white p-6 rounded-lg shadow-lg">
+          <h1 className="text-3xl font-bold text-gray-800 mb-4 md:mb-0">
+            Weekly Task Dashboard
+          </h1>
+          <div className="flex items-center">
+            <button
+              onClick={handlePreviousWeek}
+              className="px-4 py-2 bg-blue-500 text-white rounded-l-lg hover:bg-blue-600 transition-colors"
+            >
+              Previous Week
+            </button>
+            <span className="px-4 py-2 bg-gray-200 text-gray-800 font-medium">
+              {format(weekStart, 'dd MMM')} - {format(addDays(weekStart, 6), 'dd MMM yyyy')}
+            </span>
+            <button
+              onClick={handleNextWeek}
+              className="px-4 py-2 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 transition-colors"
+            >
+              Next Week
+            </button>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Task columns */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <TaskColumn title="Assessments" tasks={assessments} colorClass={taskColors.assessment} />
+          <TaskColumn title="Exams" tasks={exams} colorClass={taskColors.exam} />
+          <TaskColumn title="Teamwork" tasks={teamwork} colorClass={taskColors.teamwork} />
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default WeeklyTaskView;
